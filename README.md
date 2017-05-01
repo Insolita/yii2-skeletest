@@ -10,7 +10,7 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist insolita/yii2-skeletest "~1.0"
+php composer.phar require -dev --prefer-dist insolita/yii2-skeletest "~1.0"
 ```
 
 or add
@@ -19,7 +19,7 @@ or add
 "insolita/yii2-skeletest": "~1.0"
 ```
 
-to the require section of your `composer.json` file.
+to the require-dev section of your `composer.json` file.
 
 
 Usage
@@ -70,4 +70,4 @@ after configuration you can use it in console
  ----------------------
  Copy @vendor/insolita/yii2-skeletest/templates/codeception.php in any project directory and modify as you want
  Change in controllerMap 'templateFile' parameter of skeletest controller  to you own template path
-
+ Share in issue usefull template variants
