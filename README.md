@@ -25,7 +25,7 @@ to the require section of your `composer.json` file.
 Usage
 -----
 
-in console application configure add to controllerMap section
+in console application config add to controllerMap section
 
 ```php
 'skeletest'=>[
