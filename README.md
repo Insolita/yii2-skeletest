@@ -60,7 +60,7 @@ after configuration you can use it in console
 ```
 - generate tests recursive for all files by directory alias (Be careful, if directory contains sub-directory with non-psr namespace roots, for that directories you must generate test directly)
   ```
-  ./yii skeletest/dir @frontend/services/registration
+  ./yii skeletest/dir @frontend/services/registration --app=front
   ```
 - show options
   ```

@@ -24,7 +24,7 @@ use yii\helpers\FileHelper;
 class SkeletestController extends Controller
 {
     /**
-     * Application name
+     * Application pathMap key
      *
      * @var string
      */
@@ -35,15 +35,15 @@ class SkeletestController extends Controller
      */
     public $pathMap
         = [
-            'backend' => [
+            'back' => [
                 'appPath'  => '@backend/',
-                'testPath' => '@backend/tests',
+                'testPath' => '@backend/tests/unit',
                 'testNs'   => 'backend\tests\unit',
                 'testerNs' => 'backend\tests\UnitTester',
             ],
             'front'   => [
                 'appPath'  => '@frontend/',
-                'testPath' => '@frontend/tests',
+                'testPath' => '@frontend/tests/unit',
                 'testNs'   => 'frontend\tests\unit',
                 'testerNs' => 'frontend\tests\UnitTester',
             ],
@@ -73,7 +73,7 @@ class SkeletestController extends Controller
      *
      * @var array
      */
-    public $ignoreFilePatterns = ['~(controllers|widget|interface|asset|contract|migration)~i'];
+    public $ignoreFilePatterns = ['~(controllers|widget|interface|asset|event|contract|migration|exception)~i'];
     
     /**
      * Array of regexp patterns for methods skipping  if matched
@@ -146,15 +146,6 @@ class SkeletestController extends Controller
     public function init()
     {
         parent::init();
-        $appInfo = ArrayHelper::getValue($this->pathMap, $this->app);
-        if (!$appInfo) {
-            throw new InvalidParamException('app not declared in pathMap');
-        }
-        if ($appInfo instanceof AppInfo) {
-            $this->currentApp = $appInfo;
-        } else {
-            $this->currentApp = new AppInfo($appInfo);
-        }
         $this->templateFile = FileHelper::normalizePath(Yii::getAlias($this->templateFile));
         if (!$this->templateFile || !file_exists($this->templateFile)) {
             throw new InvalidConfigException('template file not found');
@@ -168,6 +159,15 @@ class SkeletestController extends Controller
      */
     public function beforeAction($action)
     {
+        $appInfo = ArrayHelper::getValue($this->pathMap, $this->app);
+        if (!$appInfo) {
+            throw new InvalidParamException('app not declared in pathMap');
+        }
+        if ($appInfo instanceof AppInfo) {
+            $this->currentApp = $appInfo;
+        } else {
+            $this->currentApp = new AppInfo($appInfo);
+        }
         if ($this->ignoreGetters === true) {
             $this->ignoreMethodPatterns[] = '~^get(.*)$~i';
         }
