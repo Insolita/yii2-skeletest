@@ -36,7 +36,7 @@ in console application config add to controllerMap section
                                 'appPath'  => '@app/',
                                 'testPath' => '@app/tests/codeception/unit',
                                 'testNs'   => 'tests\codeception\unit',
-                                'testerNs' => 'tests\codeception\UnitTester',
+                                'testerNs' => 'tests\codeception\UnitTester', //optional
                             ]
                         ],
             'app'=>'app',//default application key
