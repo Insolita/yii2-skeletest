@@ -1,0 +1,21 @@
+{
+    "name": "insolita/yii2-skeletest",
+    "description": "Generate test skeletons for file or whole directory with target file methods (codeception/phpunit - based on template) ",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","codeception","phpunit","tests"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "insolita",
+            "email": "webmaster100500@ya.ru"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "insolita\\skeletest\\": ""
+        }
+    }
+}
