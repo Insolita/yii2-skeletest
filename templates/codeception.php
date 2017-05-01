@@ -31,13 +31,13 @@ class <?= $targetFile->getTestClass() ?> extends Unit
     */
     protected $tester;
 
-    protected function __before()
+    protected function _before()
     {
         $this->tester->haveFixtures([
         ]);
     }
 <?php else:?>
-    protected function __before()
+    protected function _before()
     {
         //Initialize test
     }
