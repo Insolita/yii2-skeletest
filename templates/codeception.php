@@ -10,10 +10,10 @@ echo "namespace {$targetFile->getTestNs()};".PHP_EOL.PHP_EOL;
 use Codeception\Test\Unit;
 use Codeception\Specify;
 <?php if($useAccessibleTrait===true):?>
-	use insolita\skeletest\AccessibleMethodTrait;
+use insolita\skeletest\AccessibleMethodTrait;
 <?php endif;?>
 <?php if($targetFile->getApp()->getTesterNs()):?>
-	use <?=$targetFile->getApp()->getTesterNs()?>;
+use <?=$targetFile->getApp()->getTesterNs()?>;
 <?php endif;?>
 /**
 *  Class <?=$targetFile->getTestClass().PHP_EOL ?>
@@ -21,38 +21,37 @@ use Codeception\Specify;
 **/
 class <?= $targetFile->getTestClass() ?> extends Unit
 {
-use Specify;
+    use Specify;
 <?php if($useAccessibleTrait===true):?>
-	use AccessibleMethodTrait;
+    use AccessibleMethodTrait;
 <?php endif;?>
 <?php if($targetFile->getApp()->getTesterBaseName()):?>
-	/**
-	* @var <?=$targetFile->getApp()->getTesterBaseName()?>
-	*/
-	protected $tester;
+    /**
+    * @var <?=$targetFile->getApp()->getTesterBaseName()?>
+    */
+    protected $tester;
 
-	protected function __before()
-	{
-	$this->tester->haveFixtures([
-
-	]);
-	}
+    protected function __before()
+    {
+        $this->tester->haveFixtures([
+        ]);
+    }
 <?php else:?>
-	protected function __before()
-	{
-	//Initialize test
-	}
+    protected function __before()
+    {
+        //Initialize test
+    }
 <?php endif;?>
 
 <?php foreach ($methods as $method=>$signature):?>
-	/**
-	* Test for <?=$method.PHP_EOL?>
-	**/
-	public function test<?=ucfirst($method)?>()
-	{
-	/**
-	* TODO: test <?=$signature.PHP_EOL?>
-	**/
-	}
+    /**
+    * Test for <?=$method.PHP_EOL?>
+    **/
+    public function test<?=ucfirst($method)?>()
+    {
+        /**
+         * TODO: test <?=$signature.PHP_EOL?>
+        **/
+    }
 <?php endforeach;?>
 }
