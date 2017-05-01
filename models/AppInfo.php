@@ -5,6 +5,7 @@
 
 namespace insolita\skeletest\models;
 
+use yii\base\InvalidConfigException;
 use yii\helpers\FileHelper;
 use yii\helpers\StringHelper;
 
@@ -26,11 +27,15 @@ final class AppInfo
     /**
      * AppInfo constructor.
      *
-     * @param string $projectRoot
-     * @param array  $config
+     * @param array $config
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     public function __construct(array $config = [])
     {
+        if (!isset($config['appPath'], $config['testPath'], $config['testNs'])) {
+            throw new InvalidConfigException('Wrong pathMap configuration');
+        }
         $this->appPath = FileHelper::normalizePath(\Yii::getAlias($config['appPath']));
         $this->testPath = FileHelper::normalizePath(\Yii::getAlias($config['testPath']));
         $this->testNs = $config['testNs'];

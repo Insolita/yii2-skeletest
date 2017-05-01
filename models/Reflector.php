@@ -8,7 +8,7 @@ namespace insolita\skeletest\models;
 /**
  * Class Reflector
  *
- * @package insolita\skeletest\services
+ * @package insolita\skeletest\models
  */
 final class Reflector
 {
@@ -17,8 +17,9 @@ final class Reflector
     /**
      * Reflector constructor.
      *
-     * @param string $className
-     * @param int    $reflectFilter
+     * @param bool $withPrivate
+     * @param bool $withProtected
+     * @param bool $withStatic
      */
     public function __construct(bool $withPrivate, bool $withProtected, bool $withStatic)
     {
