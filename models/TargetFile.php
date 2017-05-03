@@ -74,7 +74,7 @@ final class TargetFile
     /**
      * @return string
      */
-    public function getPath(): string
+    public function getPath()
     {
         return $this->path;
     }
@@ -82,13 +82,13 @@ final class TargetFile
     /**
      * @return \insolita\skeletest\models\AppInfo
      */
-    public function getApp(): \insolita\skeletest\models\AppInfo
+    public function getApp()
     {
         return $this->app;
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getClassName()
     {
@@ -96,7 +96,7 @@ final class TargetFile
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTestFilePath()
     {
@@ -104,7 +104,7 @@ final class TargetFile
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTestNs()
     {
@@ -112,7 +112,7 @@ final class TargetFile
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTestClass()
     {
@@ -120,7 +120,7 @@ final class TargetFile
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTestFileName()
     {

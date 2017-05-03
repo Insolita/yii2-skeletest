@@ -45,7 +45,7 @@ final class AppInfo
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getAppPath()
     {
@@ -53,7 +53,7 @@ final class AppInfo
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTestPath()
     {
@@ -69,7 +69,7 @@ final class AppInfo
     }
     
     /**
-     * @return mixed
+     * @return string
      */
     public function getTesterNs()
     {
