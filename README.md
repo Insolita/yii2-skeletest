@@ -10,13 +10,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require -dev --prefer-dist insolita/yii2-skeletest "~1.0"
+php composer.phar require -dev --prefer-dist insolita/yii2-skeletest "~1.1"
 ```
 
 or add
 
 ```
-"insolita/yii2-skeletest": "~1.0"
+"insolita/yii2-skeletest": "~1.1"
 ```
 
 to the require-dev section of your `composer.json` file.
