@@ -17,6 +17,13 @@
         "yiisoft/yii2": "~2.0.9",
         "insolita/yii2-validatorpack":"~0.0.1"
     },
+    "require-dev":{
+        "vlucas/phpdotenv": "*",
+        "codeception/codeception": "^2.2.3",
+        "codeception/verify": "~0.3.1",
+        "codeception/specify": "~0.4.3",
+        "nesbot/carbon": "~1.9"
+    },
     "autoload": {
         "psr-4": {
             "insolita\\skeletest\\": "src/"
