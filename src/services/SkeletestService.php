@@ -129,9 +129,23 @@ class SkeletestService
     {
         $name = $file->getName() . 'Test';
         $fileDir = dirname($file->getPath());
-        $relativePath = str_replace($config->getAppPath(), '', $fileDir);
+        if (mb_strpos($fileDir, $config->getAppPath()) !== false) {
+            $relativePath = str_replace($config->getAppPath(), '', $fileDir);
+        } elseif (\Yii::$app->basePath) {
+            $relativePath = str_replace(\Yii::$app->basePath, '', $fileDir);
+        } else {
+            if (defined(YII_APP_BASE_PATH)) {
+                $relativePath = str_replace(YII_APP_BASE_PATH, '', $fileDir);
+            } else {
+                $relativePath = str_replace(
+                    FileHelper::normalizePath(\Yii::getAlias('@vendor') . '/../'),
+                    '',
+                    $fileDir
+                );
+            }
+        }
         $testPath = FileHelper::normalizePath($config->getTestPath() . '/' . $relativePath . '/' . $name . '.php');
-        $testNamespace = FileHelper::normalizePath($config->getTestNs() . '\\' . $relativePath,'\\');
+        $testNamespace = FileHelper::normalizePath($config->getTestNs() . '\\' . $relativePath, '\\');
         return new FileClass($testPath, $name, $testNamespace, $testNamespace . '\\' . $name);
     }
     

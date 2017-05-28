@@ -59,7 +59,7 @@ class ReflectionService
      *  @param \ReflectionClass $reflection
      * @return array|null
      */
-    public function extractConstructor(\ReflectionClass $reflection): ?array
+    public function extractConstructor(\ReflectionClass $reflection)
     {
         $constructor = $reflection->getConstructor();
         if (is_null($constructor)) {

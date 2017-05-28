@@ -6,11 +6,6 @@
 namespace insolita\skeletest;
 
 /**
- * Class AccessibleMethodTrait
- *
- * @package insolita\skeletest
- */
-/**
  * Trait AccessibleMethodTrait
  *
  * @package insolita\skeletest
