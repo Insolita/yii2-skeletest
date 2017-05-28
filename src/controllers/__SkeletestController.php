@@ -21,7 +21,7 @@ use yii\helpers\FileHelper;
  *
  * @package insolita\skeletest\controlers
  */
-class SkeletestController extends Controller
+class __SkeletestController extends Controller
 {
     /**
      * Application pathMap key

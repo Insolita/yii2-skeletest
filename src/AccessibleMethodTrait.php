@@ -10,6 +10,11 @@ namespace insolita\skeletest;
  *
  * @package insolita\skeletest
  */
+/**
+ * Trait AccessibleMethodTrait
+ *
+ * @package insolita\skeletest
+ */
 trait AccessibleMethodTrait
 {
     /**
@@ -27,5 +32,35 @@ trait AccessibleMethodTrait
         $result = $methodReflection->invokeArgs($object, $args);
         $methodReflection->setAccessible(false);
         return $result;
+    }
+    
+    /**
+     * @param $object
+     * @param $property
+     *
+     * @return mixed
+     */
+    public function getProperty($object, $property)
+    {
+        $classReflection = new \ReflectionClass(get_class($object));
+        $propReflection = $classReflection->getProperty($property);
+        $propReflection->setAccessible(true);
+        $result = $propReflection->getValue($object);
+        $propReflection->setAccessible(false);
+        return $result;
+    }
+    
+    /**
+     * @param $object
+     * @param $property
+     * @param $value
+     */
+    public function setProperty($object, $property, $value)
+    {
+        $classReflection = new \ReflectionClass(get_class($object));
+        $propReflection = $classReflection->getProperty($property);
+        $propReflection->setAccessible(true);
+        $propReflection->setValue($object, $value);
+        $propReflection->setAccessible(false);
     }
 }

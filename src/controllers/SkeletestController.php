@@ -1,64 +1,43 @@
 <?php
 /**
- * Created by solly [29.04.17 21:31]
+ * Created by solly [27.05.17 23:18]
  */
 
 namespace insolita\skeletest\controllers;
 
-use insolita\skeletest\models\AppInfo;
-use insolita\skeletest\models\Reflector;
-use insolita\skeletest\models\TargetFile;
-use Yii;
+use insolita\skeletest\entity\AppConfig;
+use insolita\skeletest\entity\FileClass;
+use insolita\skeletest\services\SkeletestService;
+use insolita\skeletest\services\ReflectionService;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 use yii\console\Controller;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Console;
-use yii\helpers\FileHelper;
 
 /**
  * Class SkeletestController
  *
- * @package insolita\skeletest\controlers
+ * @package insolita\skeletest\controllers
  */
 class SkeletestController extends Controller
 {
     /**
-     * Application pathMap key
+     * List with configs of available applications
+     *
+     * @var array
+     */
+    public $apps
+        = [
+        
+        ];
+    
+    /**
+     * Current application config key from $apps list
      *
      * @var string
      */
-    public $app = 'common';
-    
-    /**
-     * @var array
-     */
-    public $pathMap
-        = [
-            'back' => [
-                'appPath'  => '@backend/',
-                'testPath' => '@backend/tests/unit',
-                'testNs'   => 'backend\tests\unit',
-                'testerNs' => 'backend\tests\UnitTester',
-            ],
-            'front'   => [
-                'appPath'  => '@frontend/',
-                'testPath' => '@frontend/tests/unit',
-                'testNs'   => 'frontend\tests\unit',
-                'testerNs' => 'frontend\tests\UnitTester',
-            ],
-            'common'  => [
-                'appPath'  => '@common/',
-                'testPath' => '@common/tests/unit',
-                'testNs'   => 'common\tests\unit',
-                'testerNs' => 'common\tests\UnitTester',
-            ],
-            'console' => [
-                'appPath'  => '@console/',
-                'testPath' => '@console/tests/unit',
-                'testNs'   => 'console\tests\unit',
-            ],
-        ];
+    public $app = 'app';
     
     /**
      * Path to test template
@@ -130,15 +109,24 @@ class SkeletestController extends Controller
      */
     public $defaultAction = 'file';
     
-    /**
-     * @var AppInfo
-     */
-    private $currentApp;
+    public $serviceClass = SkeletestService::class;
+    
+    public $reflectionServiceClass = ReflectionService::class;
     
     /**
-     * @var Reflector
+     * @var ReflectionService
      */
-    private $reflector;
+    private $reflectionService;
+    
+    /**
+     * @var SkeletestService
+     */
+    private $service;
+    
+    /**
+     * @var \insolita\skeletest\entity\AppConfig
+     */
+    private $currentApp;
     
     /**
      * @throws \yii\base\InvalidConfigException
@@ -146,7 +134,7 @@ class SkeletestController extends Controller
     public function init()
     {
         parent::init();
-        $this->templateFile = FileHelper::normalizePath(Yii::getAlias($this->templateFile));
+        $this->templateFile = \Yii::getAlias($this->templateFile);
         if (!$this->templateFile || !file_exists($this->templateFile)) {
             throw new InvalidConfigException('template file not found');
         }
@@ -155,18 +143,20 @@ class SkeletestController extends Controller
     /**
      * @param \yii\base\Action $action
      *
+     * @throws \yii\base\InvalidParamException
      * @return bool
      */
     public function beforeAction($action)
     {
-        $appInfo = ArrayHelper::getValue($this->pathMap, $this->app);
+        $appInfo = ArrayHelper::getValue($this->apps, $this->app);
         if (!$appInfo) {
-            throw new InvalidParamException('app not declared in pathMap');
+            throw new InvalidParamException('app with key ' . $this->app . ' not declared in apps configuration');
         }
-        if ($appInfo instanceof AppInfo) {
+        $this->service = \Yii::createObject($this->serviceClass);
+        if ($appInfo instanceof AppConfig) {
             $this->currentApp = $appInfo;
         } else {
-            $this->currentApp = new AppInfo($appInfo);
+            $this->currentApp = $this->service->createAppConfig($appInfo);
         }
         if ($this->ignoreGetters === true) {
             $this->ignoreMethodPatterns[] = '~^get(.*)$~i';
@@ -174,11 +164,15 @@ class SkeletestController extends Controller
         if ($this->ignoreSetters === true) {
             $this->ignoreMethodPatterns[] = '~^set(.*)$~i';
         }
-        $this->reflector = new Reflector(
-            $this->withPrivateMethods,
-            $this->withProtectedMethods,
-            $this->withStaticMethods
+        $this->reflectionService = \Yii::createObject(
+            $this->reflectionServiceClass,
+            [
+                $this->withPrivateMethods,
+                $this->withProtectedMethods,
+                $this->withStaticMethods,
+            ]
         );
+        
         return parent::beforeAction($action);
     }
     
@@ -231,11 +225,35 @@ class SkeletestController extends Controller
      */
     public function actionFile($alias)
     {
-        $file = new TargetFile($alias, $this->currentApp);
+        $path = $this->service->getValidFilePath($alias);
+        $file = $this->service->createFileClass($path);
+        if (!$file->getNamespace()) {
+            Console::output(
+                Console::ansiFormat(
+                    'File without namespace, or namespace not recognized' . PHP_EOL,
+                    [Console::FG_RED]
+                )
+            );
+            return 1;
+        }
+        
+        $testFile = $this->service->guessTestFileClass($file, $this->currentApp);
         //Skip file filters for direct call
-        if ($this->confirmGeneration([$file])) {
-            $methods = $this->filterMethods($this->reflector->extractMethods($file->getClassName()));
-            $this->generateSkeleton($file, $methods);
+        if ($this->confirmGeneration([[$file,$testFile]])) {
+            $reflection = new \ReflectionClass($file->getFqnClass());
+            $methods = $this->reflectionService->extractMethods($reflection);
+            list($methods, $skipped) = $this->service->filterMethodsByPattern($methods, $this->ignoreFilePatterns);
+    
+            if ($this->verbose && !empty($skipped)) {
+                Console::output(
+                    Console::ansiFormat(
+                        '  **Skip methods '.PHP_EOL . implode(PHP_EOL, $skipped). PHP_EOL,
+                        [Console::FG_YELLOW]
+                    )
+                );
+            }
+            $this->generateSkeleton($testFile, $methods, $reflection);
+            
         }
         Console::output(Console::ansiFormat('Done!' . PHP_EOL, [Console::FG_GREEN]));
     }
@@ -247,17 +265,58 @@ class SkeletestController extends Controller
      */
     public function actionDir($alias)
     {
-        $targetFiles = $this->filterFiles(TargetFile::createFromDirectory($alias, $this->currentApp));
+        $path = $this->service->getValidDirectoryPath($alias);
+        $files = $this->service->createFileClassesFromDirectory($path,$this->currentApp);
+        $targetFiles = [];
+        foreach ($files as $fileset) {
+            /**@var FileClass $file*/
+            /**@var FileClass $testFile*/
+            list($file,$testFile) = $fileset;
+            if(!$testFile){
+                Console::output(
+                    Console::ansiFormat(
+                        'File without namespace, or namespace not recognized' . PHP_EOL,
+                        [Console::FG_RED]
+                    )
+                );
+                continue;
+            }
+            if ($this->service->isPathMatched($file->getPath(), $this->ignoreFilePatterns) === true) {
+                if ($this->verbose) {
+                    Console::output(Console::ansiFormat(' - Skip ' . $file->getPath(), [Console::FG_CYAN]));
+                }
+                continue;
+            }
+            if($this->overwrite === false && file_exists($testFile->getPath())){
+                if($this->verbose){
+                    Console::output(Console::ansiFormat(' ** Skip Existed' . $file->getPath(), [Console::FG_YELLOW]));
+                }
+                continue;
+            }
+            $targetFiles[] = [$file,$testFile];
+        }
         if (empty($targetFiles)) {
-            Console::output('php files not found by path ' . Yii::getAlias($alias));
+            Console::output('php files not found by path ' . \Yii::getAlias($alias));
         } else {
             if ($this->confirmGeneration($targetFiles)) {
-                foreach ($targetFiles as $file) {
-                    $methods = $this->filterMethods($this->reflector->extractMethods($file->getClassName()));
-                    if ($this->verbose) {
-                        Console::output(Console::ansiFormat(' - Generate ' . $file->getPath(), [Console::FG_CYAN]));
+                foreach ($targetFiles as $fileset) {
+                    /**@var FileClass $file*/
+                    /**@var FileClass $testFile*/
+                    list($file,$testFile) = $fileset;
+                    $reflection = new \ReflectionClass($file->getFqnClass());
+                    $methods = $this->reflectionService->extractMethods($reflection);
+                    list($methods, $skipped) =
+                        $this->service->filterMethodsByPattern($methods, $this->ignoreFilePatterns);
+    
+                    if ($this->verbose && !empty($skipped)) {
+                        Console::output(
+                            Console::ansiFormat(
+                                '  **Skip methods '.PHP_EOL . implode(PHP_EOL, $skipped). PHP_EOL,
+                                [Console::FG_YELLOW]
+                            )
+                        );
                     }
-                    $this->generateSkeleton($file, $methods);
+                    $this->generateSkeleton($testFile, $methods, $reflection);
                 }
             }
             Console::output(Console::ansiFormat('Done!' . PHP_EOL, [Console::FG_GREEN]));
@@ -265,89 +324,22 @@ class SkeletestController extends Controller
     }
     
     /**
-     * @param array|TargetFile[] $targetFiles
-     *
-     * @return array|TargetFile[]
-     */
-    private function filterFiles(array $targetFiles)
-    {
-        $targetFiles = array_filter(
-            $targetFiles,
-            function (TargetFile $file) {
-                if ($file->isPathMatched($this->ignoreFilePatterns) === true) {
-                    if ($this->verbose) {
-                        Console::output(
-                            Console::ansiFormat(
-                                '    Skip ' . $file->getPath(),
-                                [Console::FG_CYAN]
-                            )
-                        );
-                    }
-                    return false;
-                }
-                if ($this->overwrite == false && $file->isTestFileExists()) {
-                    if ($this->verbose) {
-                        Console::output(
-                            Console::ansiFormat(
-                                '    Skip Existed ' . $file->getPath(),
-                                [Console::FG_CYAN]
-                            )
-                        );
-                    }
-                    return false;
-                }
-                return true;
-            }
-        );
-        return $targetFiles;
-    }
-    
-    /**
-     * @param array $methods
-     *
-     * @return array
-     */
-    private function filterMethods(array $methods)
-    {
-        if (!empty($this->ignoreMethodPatterns) && !empty($methods)) {
-            $methods = array_filter(
-                $methods,
-                function ($methodName) {
-                    foreach ($this->ignoreMethodPatterns as $pattern) {
-                        if (preg_match($pattern, $methodName)) {
-                            if ($this->verbose) {
-                                Console::output(
-                                    Console::ansiFormat(
-                                        '  **Skip ' . $methodName . PHP_EOL,
-                                        [Console::FG_YELLOW]
-                                    )
-                                );
-                            }
-                            return false;
-                        }
-                    }
-                    return true;
-                },
-                ARRAY_FILTER_USE_KEY
-            );
-        }
-        return $methods;
-    }
-    
-    /**
-     * @param array|TargetFile[] $targetFiles
+     * @param array|FileClass[]
      *
      * @return bool
      */
-    private function confirmGeneration(array $targetFiles)
+    private function confirmGeneration(array $files)
     {
         Console::output('The following tests will be created:' . PHP_EOL);
-        foreach ($targetFiles as $file) {
-            Console::output(Console::ansiFormat($file->getPath() . PHP_EOL, [Console::FG_GREEN]));
+        foreach ($files as $fileset) {
+            /**@var FileClass $file*/
+            /**@var FileClass $testFile*/
+            list(,$testFile) = $fileset;
+            Console::output(Console::ansiFormat($testFile->getPath() . PHP_EOL, [Console::FG_GREEN]));
             if ($this->verbose) {
                 Console::output(
-                    '     -- ' . $file->getTestFullPath()
-                    . ' with namespace ' . $file->getTestNs()
+                    '     -- ' . $testFile->getPath()
+                    . ' with namespace ' . $testFile->getFqnClass()
                     . PHP_EOL
                 );
             }
@@ -356,21 +348,25 @@ class SkeletestController extends Controller
     }
     
     /**
-     * @param TargetFile $file
+     * @param \insolita\skeletest\entity\FileClass $testFile
      * @param array      $methods
+     * @param \ReflectionClass $reflection
      */
-    private function generateSkeleton(TargetFile $file, array $methods)
+    private function generateSkeleton(FileClass $testFile, array $methods, \ReflectionClass $reflection)
     {
-        $file->createTestDirectory();
+        $this->service->createTestDirectory(dirname($testFile->getPath()));
         $useAccessibleTrait = ($this->withProtectedMethods === true || $this->withPrivateMethods === true);
         $data = $this->renderFile(
             $this->templateFile,
             [
-                'targetFile'         => $file,
+                'testFile'         => $testFile,
+                'app' => $this->currentApp,
                 'methods'            => $methods,
+                'reflection' =>$reflection,
                 'useAccessibleTrait' => $useAccessibleTrait,
             ]
         );
-        $file->createTestFile($data);
+        $this->service->createTestFile($testFile->getPath(), $data);
     }
+    
 }

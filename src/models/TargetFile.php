@@ -16,11 +16,15 @@ use yii\helpers\StringHelper;
  */
 final class TargetFile
 {
+    
     /**
+     * Full file path
      * @var string
      */
     private $path;
+    
     /**
+     * Path alias
      * @var string
      */
     private $alias;
@@ -31,21 +35,37 @@ final class TargetFile
     private $app;
     
     /**
+     * FQN className
      * @var string
      */
     private $className;
     
     /**
+     * File namespace
+     * @var string
+     */
+    private $ns;
+    
+    /**
+     * File name, without extension
+     * @var string
+     */
+    private $name;
+    
+    /**
+     * Full path for future test file
      * @var string
      */
     private $testFilePath;
     
     /**
+     * Namespace for future test
      * @var string
      */
     private $testNs;
     
     /**
+     * FQN className for future test
      * @var string
      */
     private $testClass;
@@ -61,28 +81,21 @@ final class TargetFile
         $this->app = $app;
         $this->alias = $alias;
         $path = FileHelper::normalizePath(\Yii::getAlias($alias));
-        if (!StringHelper::endsWith($path, '.php')) {
-            $path .= '.php';
-        }
+        $path = $this->appendExtension($path, 'php');
         if (!is_file($path) || !is_readable($path)) {
             throw new InvalidParamException('Path must be a readable file');
         }
         $this->path = $path;
+        $this->name = pathinfo($path,PATHINFO_FILENAME);
+        $this->ns = $this->namespaceMatcher(file_get_contents($this->path));
+        $this->className = $this->ns . '\\' . $this->name;
         $this->prepare();
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
     }
     
     /**
      * @return \insolita\skeletest\models\AppInfo
      */
-    public function getApp()
+    public function getApp(): AppInfo
     {
         return $this->app;
     }
@@ -90,9 +103,44 @@ final class TargetFile
     /**
      * @return string
      */
-    public function getClassName()
+    public function getPath(): string
+    {
+        return $this->path;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getNs(): string
+    {
+        return $this->ns;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getClassName(): string
     {
         return $this->className;
+    }
+    
+    /**
+     * @param string $prefix
+     * @param string $postfix
+     *
+     * @return string
+     */
+    public function getFileName($prefix = '', $postfix = '', $extension = '.php'): string
+    {
+        return $prefix . $this->name . $postfix . $extension;
     }
     
     /**
@@ -179,6 +227,17 @@ final class TargetFile
     }
     
     /**
+     * @param $content
+     *
+     * @return string
+     */
+    public function namespaceMatcher($content): string
+    {
+        preg_match('/^\s*namespace\s*([\\\\\w]+);\s*$/mis', $content, $matches);
+        return $matches[1]??'';
+    }
+    
+    /**
      * @param                                    $alias
      * @param \insolita\skeletest\models\AppInfo $appInfo
      *
@@ -199,9 +258,23 @@ final class TargetFile
         foreach ($files as $file) {
             $baseAlias = explode(DIRECTORY_SEPARATOR, $alias)[0];
             $relativeAlias = ltrim(str_replace(\Yii::getAlias($baseAlias), '', $file), '/');
-            $targetFiles[] = new self($baseAlias.DIRECTORY_SEPARATOR.$relativeAlias, $appInfo);
+            $targetFiles[] = new self($baseAlias . DIRECTORY_SEPARATOR . $relativeAlias, $appInfo);
         }
         return $targetFiles;
+    }
+    
+    /**
+     * @param $path
+     * @param $extension
+     *
+     * @return string
+     */
+    protected function appendExtension(string $path, string $extension):string
+    {
+        if (!StringHelper::endsWith($path, '.' . $extension)) {
+            $path .= '.' . $extension;
+        }
+        return $path;
     }
     
     /**
@@ -214,11 +287,5 @@ final class TargetFile
         $this->testClass = StringHelper::basename($this->path, '.php') . 'Test';
         $this->testFileName = $this->testClass . '.php';
         $this->testNs = FileHelper::normalizePath($this->app->getTestNs() . '/' . $relativePath, '\\');
-        $baseAlias = explode(DIRECTORY_SEPARATOR, $this->alias)[0];
-        $relativeAlias = ltrim(str_replace(\Yii::getAlias($baseAlias), '', $this->path), '/');
-        $this->className = FileHelper::normalizePath(str_replace(['@','.php'],
-                                                           '',
-                                                           $baseAlias.DIRECTORY_SEPARATOR.$relativeAlias
-                                               ),'\\');
     }
 }

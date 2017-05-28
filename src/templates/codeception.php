@@ -1,33 +1,36 @@
 <?php
 /**
  * @var array $methods
- * @var \insolita\skeletest\models\TargetFile $targetFile
+ * @var \insolita\skeletest\entity\FileClass $testFile
+ * @var \insolita\skeletest\entity\AppConfig $app
+ * @var \ReflectionClass $reflection
  * @var bool $useAccessibleTrait
  **/
 echo "<?php".PHP_EOL;
-echo "namespace {$targetFile->getTestNs()};".PHP_EOL.PHP_EOL;
+echo "namespace {$testFile->getNamespace()};".PHP_EOL.PHP_EOL;
 ?>
 use Codeception\Test\Unit;
 use Codeception\Specify;
+use <?=$reflection->getName();?>;
 <?php if($useAccessibleTrait===true):?>
 use insolita\skeletest\AccessibleMethodTrait;
 <?php endif;?>
-<?php if($targetFile->getApp()->getTesterNs()):?>
-use <?=$targetFile->getApp()->getTesterNs()?>;
+<?php if($app->getTesterClass()):?>
+use <?=$app->getTesterClass()?>;
 <?php endif;?>
 /**
-*  Class <?=$targetFile->getTestClass().PHP_EOL ?>
-*  Test for <?=$targetFile->getClassName().PHP_EOL?>
+*  Class <?=$testFile->getName().PHP_EOL ?>
+*  Test for <?=$reflection->getName().PHP_EOL?>
 **/
-class <?= $targetFile->getTestClass() ?> extends Unit
+class <?= $testFile->getName() ?> extends Unit
 {
     use Specify;
 <?php if($useAccessibleTrait===true):?>
     use AccessibleMethodTrait;
 <?php endif;?>
-<?php if($targetFile->getApp()->getTesterBaseName()):?>
+<?php if($app->getTesterClass()):?>
     /**
-    * @var <?=$targetFile->getApp()->getTesterBaseName()?>
+    * @var <?=\yii\helpers\StringHelper::basename($app->getTesterClass())?>
     */
     protected $tester;
 
@@ -43,14 +46,15 @@ class <?= $targetFile->getTestClass() ?> extends Unit
     }
 <?php endif;?>
 
-<?php foreach ($methods as $method=>$signature):?>
+<?php foreach ($methods as $method=>$data):?>
     /**
     * Test for <?=$method.PHP_EOL?>
+    * @see \<?=$data['signature'].PHP_EOL?>
     **/
     public function test<?=ucfirst($method)?>()
     {
         /**
-         * TODO: test <?=$signature.PHP_EOL?>
+         * TODO: test <?=$data['signature'].PHP_EOL?>
         **/
     }
 <?php endforeach;?>
