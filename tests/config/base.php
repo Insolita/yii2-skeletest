@@ -28,10 +28,7 @@ return [
         'definitions'=>[],
         'singletons'=>[]
     ],
-    'components' => [
-        'db'=>$mysql,
-        'pgdb'=>$pgsql,
-    ],
+    'components' => [],
     'modules'=>[
     ],
     'params'=>[]
