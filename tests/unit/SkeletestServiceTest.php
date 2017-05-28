@@ -49,6 +49,7 @@ class SkeletestServiceTest extends Unit
      */
     public function getValidDirectoryPath()
     {
+        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@vendor/insolita/yii2-skeletest/src'));
         $service = new SkeletestService();
         $exists = '@insolita/skeletest/services';
         $valid = $service->getValidDirectoryPath($exists);
@@ -67,6 +68,8 @@ class SkeletestServiceTest extends Unit
      */
     public function getValidFilePath()
     {
+        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@vendor/insolita/yii2-skeletest/src'));
+    
         $service = new SkeletestService();
         $exists = '@insolita/skeletest/services/SkeletestService';
         $valid = $service->getValidFilePath($exists);
@@ -86,6 +89,8 @@ class SkeletestServiceTest extends Unit
      */
     public function createFileClass()
     {
+        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@vendor/insolita/yii2-skeletest/src'));
+    
         $service = new SkeletestService();
         $fileClass = $service->createFileClass(\Yii::getAlias('@insolita/skeletest/services/SkeletestService.php'));
         verify($fileClass)->isInstanceOf(FileClass::class);
@@ -130,6 +135,12 @@ class SkeletestServiceTest extends Unit
         $this->specify(
             'Tests not under app root',
             function () {
+                Debug::debug([
+                    'basepath'=>\Yii::$app->basePath,
+                    'basepath2'=>YII_APP_BASE_PATH,
+                    'vendorpath'=>Yii::getAlias('@vendor'),
+                    'yiipath'=>Yii::getAlias('@yii')
+                             ]);
                 $service = new SkeletestService();
                 $fileClass = $service->createFileClass(
                     \Yii::getAlias('@yii/base/Action.php')
