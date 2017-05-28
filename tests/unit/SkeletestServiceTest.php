@@ -13,6 +13,7 @@ use insolita\skeletest\entity\AppConfig;
 use insolita\skeletest\entity\FileClass;
 use insolita\skeletest\services\SkeletestService;
 use yii\base\InvalidParamException;
+use yii\helpers\FileHelper;
 
 /**
  * Class SkeletestServiceTest
@@ -49,7 +50,7 @@ class SkeletestServiceTest extends Unit
      */
     public function getValidDirectoryPath()
     {
-        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@tests/../src'));
+        \Yii::setAlias('@insolita/skeletest', FileHelper::normalizePath(Yii::getAlias('@tests/../src')));
         $service = new SkeletestService();
         $exists = '@insolita/skeletest/services';
         $valid = $service->getValidDirectoryPath($exists);
@@ -68,8 +69,8 @@ class SkeletestServiceTest extends Unit
      */
     public function getValidFilePath()
     {
-        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@tests/../src'));
-    
+        \Yii::setAlias('@insolita/skeletest', FileHelper::normalizePath(Yii::getAlias('@tests/../src')));
+      
         $service = new SkeletestService();
         $exists = '@insolita/skeletest/services/SkeletestService';
         $valid = $service->getValidFilePath($exists);
@@ -89,7 +90,7 @@ class SkeletestServiceTest extends Unit
      */
     public function createFileClass()
     {
-        \Yii::setAlias('@insolita/skeletest', Yii::getAlias('@tests/../src'));
+        \Yii::setAlias('@insolita/skeletest', FileHelper::normalizePath(Yii::getAlias('@tests/../src')));
     
         $service = new SkeletestService();
         $fileClass = $service->createFileClass(\Yii::getAlias('@insolita/skeletest/services/SkeletestService.php'));

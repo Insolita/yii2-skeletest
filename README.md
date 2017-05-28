@@ -1,6 +1,9 @@
 Test Skeleton generator
 =======================
-Generate test skeletons for file or whole directory with target file methods (codeception/phpunit - based on template) 
+Generate test skeletons for file or whole directory with target file methods (codeception/phpunit - based on template)
+
+[CHANGELOG!](CHANGELOG.md)
+
 
 Installation
 ------------
@@ -30,7 +33,7 @@ in console application config add to controllerMap section
 ```php
 'skeletest'=>[
             'class'=>\insolita\skeletest\controllers\SkeletestController::class,
-            'pathMap' => [
+            'apps' => [
             //register each application with own test directory - for basic template like this
                             'app'=>[
                                 'appPath'  => '@app/',
