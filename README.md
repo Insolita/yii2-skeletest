@@ -1,5 +1,11 @@
 Test Skeleton generator
 =======================
+
+![Status](https://travis-ci.org/Insolita/yii2-skeletest.svg?branch=master)
+![Latest Stable Version](https://img.shields.io/packagist/v/insolita/yii2-skeletest.svg)
+[![Total Downloads](https://img.shields.io/packagist/dt/insolita/yii2-skeletest.svg)](https://packagist.org/packages/insolita/yii2-skeletest.svg)
+![License](https://img.shields.io/packagist/l/insolita/yii2-skeletest.svg)
+
 Generate test skeletons for file or whole directory with target file methods (codeception/phpunit - based on template)
 
 [CHANGELOG!](CHANGELOG.md)
