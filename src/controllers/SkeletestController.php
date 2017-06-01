@@ -44,7 +44,7 @@ class SkeletestController extends Controller
      *
      * @var string
      */
-    public $templateFile = '@vendor/insolita/yii2-skeletest/templates/codeception.php';
+    public $templateFile = '@vendor/insolita/yii2-skeletest/src/templates/codeception.php';
     
     /**
      * Array of regexp patterns for files skipping  if matched
